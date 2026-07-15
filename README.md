@@ -6,7 +6,7 @@ This repository is intended as a **browseable Research Software Engineering port
 
 ## Repository contents
 
-- `notebooks/` — 8 analysis notebooks
+- — Analysis notebooks
   - `p2559_Omld.ipynb` — ocean mixed-layer depth analysis
   - `p2559_Osst.ipynb` — sea-surface temperature trends and maps
   - `p2559_Owo.ipynb` — ocean vertical velocity climatologies and trends
@@ -14,10 +14,9 @@ This repository is intended as a **browseable Research Software Engineering port
   - `p2559_t2m_ITCZtpr.ipynb` — ITCZ and precipitation trends
   - `p2559_tctp.ipynb` — cloud cover and precipitation feature tracking
   - `p2559_tu_VP.ipynb` — zonal wind, temperature and vertical velocity cross-sections
-  - `proj2559_HKP.ipynb` — quick-look inspection of high-resolution GRIB output
 - `environment.yml` — conda environment specification
 
-All notebooks now begin with **"Why this notebook matters"** and **"Key techniques demonstrated"** sections. No external `figures/` directory is uploaded; all outputs are embedded in the notebooks.
+All notebooks now begin with **"Why this notebook matters"** and **"Key techniques demonstrated"** sections. All outputs are embedded in the notebooks.
 
 ## Workflow
 
@@ -28,11 +27,11 @@ Each notebook follows the same structure:
 3. Data loading and scientific analysis with `xarray`, `dask`, `healpy` and `cartopy`.
 4. Plotting with `matplotlib` and `cmocean`.
 
-Because the original output paths were large, outputs were cleared from `p2559_tctp.ipynb` and `p2559_Osst.ipynb` to keep the repository below GitHub’s file-size limits, then a curated set of representative figures was re-added to the notebooks themselves. No external `figures/` directory is uploaded.
+Because the original output paths were large, outputs were cleared from `p2559_tctp.ipynb` and `p2559_Osst.ipynb` to keep the repository below GitHub’s file-size limits, then a curated set of representative figures was re-added to the notebooks themselves. 
 
 ## Example outputs
 
-The notebooks retain their executed outputs, so representative figures can be viewed directly inside each notebook. No external `figures/` directory is uploaded. Representative outputs include:
+The notebooks retain their executed outputs, so representative figures can be viewed directly inside each notebook. Representative outputs include:
 
 - SST trend map from `p2559_Osst.ipynb`
 - ITCZ temperature and precipitation trend from `p2559_t2m_ITCZtpr.ipynb`
@@ -81,3 +80,9 @@ The notebooks read original DKRZ Levante HEALPix-grid NetCDF/GRIB output and anc
 - Absolute HPC paths and usernames have been replaced with documented placeholder variables.
 - Outputs from `p2559_tctp.ipynb` and `p2559_Osst.ipynb` were cleared because the original files were larger than GitHub’s 50 MB warning threshold; a curated set of representative figures has been re-added to each.
 - The notebooks are provided for portfolio browsing; full re-execution requires the original data and a compatible HPC/conda environment.
+
+## Notes
+
+- The original climate datasets are not included because of their size and access restrictions.
+- Absolute HPC paths have been replaced with placeholder variables for portability.
+- These notebooks are provided as examples of scientific analysis workflows and are intended primarily as a software engineering and research portfolio.
