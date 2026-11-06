@@ -74,6 +74,16 @@ The notebooks read original DKRZ Levante HEALPix-grid NetCDF/GRIB output and anc
 - `{FESOM_DATA_ROOT}` — FESOM2 mesh diagnostic files (e.g. `MESHES_FESOM2.1/ng5/fesom.mesh.diag.nc`)
 - `{GPFS_SCRATCH_DIR}` — optional archived GRIB root (only used in commented-out cells)
 
+## Data sources and access
+
+| Data | Format | Access |
+|---|---|---|
+| DestinE Climate DT storm-resolving projection (TCo2559, ~4–5 km), 2020–2039: ocean 2D/3D, hourly surface and pressure-level fields | GRIB and NetCDF on HEALPix grids | DKRZ Levante file system (DestinE project access); not public |
+| ERA5 reanalysis (2 m temperature) | NetCDF | Copernicus Climate Data Store (C3S) |
+| FESOM2 mesh files (NG5) | NetCDF | Same HPC system |
+
+Data are opened lazily with xarray, Dask and cfgrib, so only the selected variables and periods are read into memory. Paths are placeholders, see *Expected input data*.
+
 ## Limitations
 
 - The original HPC data are **not included** in this repository.
@@ -86,3 +96,7 @@ The notebooks read original DKRZ Levante HEALPix-grid NetCDF/GRIB output and anc
 - The original climate datasets are not included because of their size and access restrictions.
 - Absolute HPC paths have been replaced with placeholder variables for portability.
 - These notebooks are provided as examples of scientific analysis workflows and are intended primarily as a software engineering and research portfolio.
+
+## Licence
+
+Code: MIT, see [LICENSE](LICENSE). Data: see *Data sources and access*; third-party data keep their own terms.
