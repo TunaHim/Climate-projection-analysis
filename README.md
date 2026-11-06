@@ -4,6 +4,10 @@ A collection of Jupyter notebooks that diagnose a high-resolution storm-resolvin
 
 This repository is intended as a **browseable Research Software Engineering portfolio** rather than a fully installable package. The original HPC data are not included, so the notebooks cannot be re-executed without local data copies.
 
+## How it is built
+
+A one-page overview of the data pipeline, the problems it solves and how the code is organised: [How it is built](https://tunahim.github.io/Climate-projection-analysis/engineering_overview.html).
+
 ## Repository contents
 
 - — Analysis notebooks
