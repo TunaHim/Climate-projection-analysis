@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it is built · Climate projection analysis</title>
+<style>
+:root{--bg:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e1e0d9;--axis:#c3c2b7;
+--blue:#2a78d6;--blue-soft:#cde2fb;--orange:#eb6834;--orange-soft:#fbe0d4;--aqua:#1baf7a;--aqua-soft:#d3f1e5;--yellow:#eda100;--yellow-soft:#fcefc9;--violet:#4a3aa7;--violet-soft:#e2def7;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--axis:#383835;
+--blue:#3987e5;--blue-soft:#17324f;--orange:#d95926;--orange-soft:#3d2216;--aqua:#199e70;--aqua-soft:#12342a;--yellow:#c98500;--yellow-soft:#3a2d0c;--violet:#9085e9;--violet-soft:#2a2550;}}
+:root[data-theme="dark"]{--bg:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--axis:#383835;
+--blue:#3987e5;--blue-soft:#17324f;--orange:#d95926;--orange-soft:#3d2216;--aqua:#199e70;--aqua-soft:#12342a;--yellow:#c98500;--yellow-soft:#3a2d0c;--violet:#9085e9;--violet-soft:#2a2550;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1060px;margin:0 auto;padding:28px 16px 64px}
+h1{font-size:26px;margin:0 0 4px}
+h2{font-size:19px;margin:40px 0 8px}
+p.lead{color:var(--ink2);margin:0 0 20px;max-width:760px}
+p{max-width:780px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.grid .card{margin:0}
+.card h3{font-size:15px;margin:0 0 6px}
+.card p{margin:0;color:var(--ink2);font-size:14px}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;margin-bottom:6px}
+.tag.blue{background:var(--blue-soft);color:var(--blue)} .tag.orange{background:var(--orange-soft);color:var(--orange)}
+.tag.aqua{background:var(--aqua-soft);color:var(--aqua)} .tag.violet{background:var(--violet-soft);color:var(--violet)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font-size:24px;font-weight:600}
+.stat span{color:var(--ink2);font-size:13px}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--surface)}
+th,td{border-bottom:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{color:var(--ink2);font-weight:600}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.wrap{overflow-x:auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.svgbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;overflow-x:auto}
+.note{color:var(--muted);font-size:13px}
+</style>
+<meta name="description" content="Data and software design of the 2020–2039 km-scale climate projection analysis on HEALPix grids.">
+<meta name="author" content="Himansu Kesari Pradhan">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Cpath d='M5 20c4-8 8-8 11 0s7 8 11 0' stroke='white' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+<style>
+.sitenav{position:sticky;top:0;z-index:10;background:var(--surface,#fcfcfb);border-bottom:1px solid var(--line,#e1e0d9)}
+.sitenav div{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;font:14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.sitenav b{margin-right:8px;color:var(--ink,#0b0b0b)}
+.sitenav a{color:var(--ink2,#52514e);text-decoration:none}
+.sitenav a:hover,.sitenav a.here{color:var(--blue,#2a78d6)}
+.sitefoot{border-top:1px solid var(--line,#e1e0d9);margin-top:32px;background:var(--surface,#fcfcfb);color:var(--ink2,#52514e)}
+.sitefoot div.in{max-width:1100px;margin:0 auto;padding:18px 16px 26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px 28px;font:13px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.sitefoot b{display:block;color:var(--ink,#0b0b0b);margin-bottom:3px}
+.sitefoot a{color:var(--blue,#2a78d6)}
+.sitefoot p{margin:0}
+</style>
+</head>
+<body>
+<!-- site:nav --><nav class="sitenav"><div><b>Climate projection analysis</b><a href="engineering_overview.html" class="here">How it is built</a><a href="https://github.com/TunaHim/Climate-projection-analysis">Code on GitHub</a></div></nav><!-- /site:nav -->
+<main>
+<h1>How the analysis pipeline works</h1>
+<p class="lead">This page covers the data and software side of the analysis of a 20-year, storm-resolving climate projection
+(TCo2559, about 4–5 km, 2020–2039) on HEALPix grids. The simulation itself was produced within the Destination Earth project;
+this work is the analysis. The page shows how very large GRIB and NetCDF output is read in chunks with Dask, reduced step by step
+from hourly fields to 5-year means and trends, and saved as small compressed files that the figures are drawn from.</p>
+<div class="stats">
+  <div class="stat"><b>~4–5 km</b><span>TCo2559 storm-resolving atmosphere</span></div>
+  <div class="stat"><b>20 years</b><span>2020–2039 projection, early vs late 5-year means</span></div>
+  <div class="stat"><b>HEALPix</b><span>unstructured equal-area output grid, NSIDE inferred</span></div>
+  <div class="stat"><b>4 × 12.5 GB</b><span>Dask workers, 50 GB memory budget</span></div>
+  <div class="stat"><b>7 notebooks</b><span>ocean, atmosphere, clouds and precipitation</span></div>
+  <div class="stat"><b>zlib level 5</b><span>compressed NetCDF for every derived field</span></div>
+</div>
+<h2>1. The pipeline at a glance</h2>
+<p>Data flows from left to right. Each box is one stage, and the blue text names the code that does it. The raw output is read only once; everything after the reduction step works on small derived files.</p>
+<div class="svgbox">
+<svg viewBox="0 0 1000 300" width="100%" role="img" aria-label="Pipeline">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+<text x="10" y="22" font-size="13" font-weight="600" fill="var(--ink2)">1 · SOURCE</text>
+<rect x="10" y="34" width="178" height="256" rx="8" fill="var(--blue-soft)" stroke="var(--blue)"/>
+<text x="22" y="56" font-size="13" font-weight="600" fill="var(--ink)">Projection output</text>
+<text x="22" y="78" font-size="12" fill="var(--ink2)">TCo2559, 2020–2039</text>
+<text x="22" y="94" font-size="12" fill="var(--ink2)">hourly GRIB fields</text>
+<text x="22" y="110" font-size="12" fill="var(--ink2)">on HEALPix pixels</text>
+<text x="22" y="134" font-size="12" fill="var(--ink2)">GRIB (atmosphere)</text>
+<text x="22" y="150" font-size="12" fill="var(--ink2)">NetCDF (FESOM ocean)</text>
+<text x="22" y="166" font-size="12" fill="var(--ink2)">on DKRZ Levante</text>
+<text x="22" y="262" font-size="11" fill="var(--blue)">PROJ2559_DIR</text>
+<text x="22" y="276" font-size="11" fill="var(--blue)">FESOM_DATA_ROOT</text>
+<line x1="188" y1="150" x2="208" y2="150" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="210" y="22" font-size="13" font-weight="600" fill="var(--ink2)">2 · READ</text>
+<rect x="210" y="34" width="178" height="256" rx="8" fill="var(--surface)" stroke="var(--axis)"/>
+<text x="222" y="56" font-size="13" font-weight="600" fill="var(--ink)">Lazy, chunked</text>
+<text x="222" y="78" font-size="12" fill="var(--ink2)">cfgrib engine for GRIB</text>
+<text x="222" y="94" font-size="12" fill="var(--ink2)">Dask chunks along</text>
+<text x="222" y="110" font-size="12" fill="var(--ink2)">time and pixels</text>
+<text x="222" y="134" font-size="12" fill="var(--ink2)">4 workers × 12.5 GB</text>
+<text x="222" y="150" font-size="12" fill="var(--ink2)">one thread each</text>
+<text x="222" y="262" font-size="11" fill="var(--blue)">xr.open_dataset(..,</text>
+<text x="222" y="276" font-size="11" fill="var(--blue)">engine=&#x27;cfgrib&#x27;, chunks)</text>
+<line x1="389" y1="150" x2="409" y2="150" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="411" y="22" font-size="13" font-weight="600" fill="var(--ink2)">3 · REDUCE</text>
+<rect x="411" y="34" width="178" height="256" rx="8" fill="var(--aqua-soft)" stroke="var(--aqua)"/>
+<text x="423" y="56" font-size="13" font-weight="600" fill="var(--ink)">Step by step</text>
+<text x="423" y="78" font-size="12" fill="var(--ink2)">hourly → daily</text>
+<text x="423" y="94" font-size="12" fill="var(--ink2)">daily → monthly</text>
+<text x="423" y="110" font-size="12" fill="var(--ink2)">monthly → annual</text>
+<text x="423" y="126" font-size="12" fill="var(--ink2)">annual → 5-year means</text>
+<text x="423" y="142" font-size="12" fill="var(--ink2)">2020–24 vs 2035–39</text>
+<text x="423" y="158" font-size="12" fill="var(--ink2)">per-pixel trends</text>
+<text x="423" y="262" font-size="11" fill="var(--blue)">resample(time=...)</text>
+<text x="423" y="276" font-size="11" fill="var(--blue)">dask .compute()</text>
+<line x1="589" y1="150" x2="609" y2="150" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="611" y="22" font-size="13" font-weight="600" fill="var(--ink2)">4 · STORE</text>
+<rect x="611" y="34" width="178" height="256" rx="8" fill="var(--surface)" stroke="var(--axis)"/>
+<text x="623" y="56" font-size="13" font-weight="600" fill="var(--ink)">Small derived files</text>
+<text x="623" y="78" font-size="12" fill="var(--ink2)">NetCDF, zlib level 5</text>
+<text x="623" y="94" font-size="12" fill="var(--ink2)">one file per variable</text>
+<text x="623" y="110" font-size="12" fill="var(--ink2)">and statistic</text>
+<text x="623" y="134" font-size="12" fill="var(--ink2)">re-plot without</text>
+<text x="623" y="150" font-size="12" fill="var(--ink2)">re-reading raw data</text>
+<text x="623" y="262" font-size="11" fill="var(--blue)">to_netcdf(encoding=</text>
+<text x="623" y="276" font-size="11" fill="var(--blue)">{zlib, complevel 5})</text>
+<line x1="790" y1="150" x2="810" y2="150" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="812" y="22" font-size="13" font-weight="600" fill="var(--ink2)">5 · RESULTS</text>
+<rect x="812" y="34" width="178" height="256" rx="8" fill="var(--violet-soft)" stroke="var(--violet)"/>
+<text x="824" y="56" font-size="13" font-weight="600" fill="var(--ink)">Maps and tracking</text>
+<text x="824" y="78" font-size="12" fill="var(--ink2)">HEALPix → lat-lon</text>
+<text x="824" y="94" font-size="12" fill="var(--ink2)">for plotting</text>
+<text x="824" y="110" font-size="12" fill="var(--ink2)">marine heatwave days</text>
+<text x="824" y="126" font-size="12" fill="var(--ink2)">cloud and rain feature</text>
+<text x="824" y="142" font-size="12" fill="var(--ink2)">tracking</text>
+<text x="824" y="158" font-size="12" fill="var(--ink2)">vertical cross-sections</text>
+<text x="824" y="262" font-size="11" fill="var(--blue)">healpy · skimage</text>
+<text x="824" y="276" font-size="11" fill="var(--blue)">cartopy · cmocean</text>
+</svg>
+</div>
+<h2>2. The notebooks</h2>
+<div class="wrap">
+<table>
+<thead><tr><th>Notebook</th><th>What it analyses</th><th>Engineering point</th></tr></thead>
+<tbody>
+<tr><td><code>p2559_Omld.ipynb</code></td><td>Ocean mixed-layer depth</td><td>GRIB via cfgrib, NSIDE from the pixel count, compressed NetCDF output</td></tr>
+<tr><td><code>p2559_Osst.ipynb</code></td><td>Sea-surface temperature trends, marine heatwaves</td><td>Dask cluster, single-time chunks for per-pixel statistics, monthly resampling</td></tr>
+<tr><td><code>p2559_Owo.ipynb</code></td><td>Ocean vertical velocity</td><td>FESOM NG5 mesh file for depth levels, chunks of 30 time steps</td></tr>
+<tr><td><code>p2559_t2m.ipynb</code></td><td>2 m temperature and ERA5 comparison</td><td>trend maps on HEALPix, regridded for comparison</td></tr>
+<tr><td><code>p2559_t2m_ITCZtpr.ipynb</code></td><td>ITCZ temperature and precipitation</td><td>zonal bands from HEALPix pixel latitudes</td></tr>
+<tr><td><code>p2559_tctp.ipynb</code></td><td>Cloud cover and precipitation features</td><td>object labelling and region properties with scikit-image</td></tr>
+<tr><td><code>p2559_tu_VP.ipynb</code></td><td>Zonal wind, temperature, vertical velocity</td><td>vertical cross-sections from pressure-level GRIB</td></tr>
+</tbody>
+</table>
+</div>
+<h2>3. Problems the pipeline had to solve</h2>
+<div class="grid">
+  <div class="card"><span class="tag orange">data volume</span><h3>Too big for memory</h3>
+  <p>One variable over 20 years at km scale does not fit in RAM. Fields are opened lazily with Dask chunks, and nothing is loaded until a reduction asks for it.</p></div>
+  <div class="card"><span class="tag orange">chunking</span><h3>Chunks match the question</h3>
+  <p>For time statistics at each pixel, time is one chunk and pixels are split (<code>{'time': -1, 'values': 10000}</code>). For time reductions, short time chunks are used instead (for example 744 hours, one month).</p></div>
+  <div class="card"><span class="tag orange">memory</span><h3>A fixed memory budget</h3>
+  <p>A local Dask cluster with 4 workers and 12.5 GB each keeps the job inside a 50 GB memory budget, so Dask spills to disk instead of running out of memory.</p></div>
+  <div class="card"><span class="tag blue">grids</span><h3>HEALPix without metadata</h3>
+  <p>The files do not always say which HEALPix level they use. NSIDE is worked out from the number of pixels (for example 196,608 pixels = NSIDE 128, nested order) before any coordinate is computed with <code>healpy</code>.</p></div>
+  <div class="card"><span class="tag blue">formats</span><h3>GRIB and NetCDF together</h3>
+  <p>Atmospheric output is GRIB, read with <code>cfgrib</code>; ocean output from FESOM is NetCDF on its own NG5 mesh. Both end up as <code>xarray</code> objects with the same handling.</p></div>
+  <div class="card"><span class="tag blue">repository size</span><h3>GitHub's 50 MB limit</h3>
+  <p>Outputs of two notebooks were too large. They were cleared and a curated set of figures was added back, so the notebooks stay readable on GitHub.</p></div>
+</div>
+<h2>4. What could come next</h2>
+<div class="wrap">
+<table>
+<thead><tr><th>Idea</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Shared HEALPix helpers</td><td>NSIDE inference and HEALPix-to-lat-lon regridding repeat across notebooks. One tested module would remove the copies.</td></tr>
+<tr><td>Tests and CI</td><td>There are no automated tests yet. A small synthetic HEALPix field would let the reduction and regridding code be checked on every push.</td></tr>
+<tr><td>Zarr output</td><td>Writing the derived fields as chunked Zarr would allow cloud access and partial reads instead of whole NetCDF files.</td></tr>
+<tr><td>Batch jobs</td><td>The reduction steps could run as Slurm jobs from a script, so the notebooks are only used for plotting.</td></tr>
+</tbody>
+</table>
+</div>
+<h2>5. In one sentence</h2>
+<div class="card"><p style="color:var(--ink);font-size:15px">Hourly km-scale GRIB and NetCDF output on HEALPix grids is read lazily with Dask under a fixed memory budget, reduced step by step to monthly, annual and 5-year statistics, saved as compressed NetCDF, and only then turned into maps, trends, heatwave counts and tracked cloud and rain features.</p></div>
+</main>
+<!-- site:foot --><footer class="sitefoot"><div class="in">
+<div><b>Climate projection analysis</b><p>Analysis notebooks by Himansu Kesari Pradhan, 2026. The input data are not included. Code under the
+<a href="https://github.com/TunaHim/Climate-projection-analysis/blob/main/LICENSE">MIT licence</a>; source on
+<a href="https://github.com/TunaHim/Climate-projection-analysis">GitHub</a>. Page built 6 November 2026.</p></div>
+<div><b>Data credits</b><p>TCo2559 projection: Destination Earth Climate DT (ECMWF, ESA, EUMETSAT). ERA5: Copernicus Climate Change Service. FESOM2: Alfred Wegener Institute.</p></div>
+<div><b>More</b><p><a href="https://github.com/TunaHim/Climate-projection-analysis#readme">README</a> · <a href="https://github.com/TunaHim/Climate-projection-analysis/issues">Questions and comments</a></p></div>
+</div></footer><!-- /site:foot -->
+</body>
+</html>
